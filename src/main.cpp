@@ -15,11 +15,18 @@ LiquidCrystal lcd(12, 13, 14, 15, 16, 17);
 #define DOWN        19125
 #define LEFT        4335
 #define RIGHT       23205
-#define OK          5
-#define EXIT        5
-#define NUM1        7
-#define NUM2        8
-#define NUM3        9
+#define OK          14535
+#define EXIT        -20401
+#define opendoor    26775
+#define NUM1        -23971
+#define NUM2        25245
+#define NUM3        -7651
+#define NUM4        8925
+#define NUM5        765
+#define NUM6        -15811
+#define NUM7        -7161
+#define NUM8        -22441
+#define NUM9        -28561
 
 
 int RECV_PIN = 3; // the pin where you connect the output pin of IR sensor
@@ -37,6 +44,9 @@ void    ADMIN               (void);
 
 void setup()
 {
+  //Serial.begin(9600);
+  //delay(100);
+
   pinMode(fingersens,INPUT);
   pinMode(LED_close,OUTPUT);
   pinMode(LED_open,OUTPUT);
@@ -78,10 +88,12 @@ void loop()
       x = false;
     }
 
-    if(digitalRead(fingersens) == 0)
+    int key = Check_IR_sensor();
+
+    if(digitalRead(fingersens) == 0 || key == opendoor)
     {
       int result = getFingerprintID();
-      if(result >= 0)
+      if(result >= 0 || key == opendoor)
       {
         lcd.clear();
         digitalWrite(LED_open, HIGH);
@@ -109,7 +121,6 @@ void loop()
       }
     }
 
-    int key = Check_IR_sensor();
     if(key == OK) 
     {
       menu();
@@ -132,7 +143,7 @@ int  Check_IR_sensor(void)
 
 void menu(void)
 {
-  int key;
+  int key = -1;
   bool x = true;
 
   while (key != EXIT)
@@ -166,7 +177,7 @@ void menu(void)
 
 void ENROLL (void)
 {
-  int key;
+  int key = -1;
   uint8_t id = 1;
   lcd.clear();
   lcd.print(" Enroll Finger");
@@ -201,7 +212,7 @@ void ENROLL (void)
 
 void DELETE (void)
 {
-  int key;
+  int key = -1;
   uint8_t id = 1;
   lcd.clear();
   lcd.print(" Delete Finger");
@@ -234,6 +245,7 @@ void DELETE (void)
     lcd.print(" ");
   }
 }
+
 void admin_new(void)
 {
   lcd.clear();
@@ -250,7 +262,7 @@ void admin_new(void)
 }
 void ADMIN (void)
 {
-  int key;
+  int key = -1;
   bool x = true;
 
   while (key != EXIT)
@@ -287,7 +299,7 @@ void ADMIN (void)
 
 uint8_t getFingerprintEnroll(uint8_t id)
 {
-  int key, p = -1;
+  int key = -1, p = -1;
   //Serial.print("Waiting for valid finger to enroll as #"); Serial.println(id);
   lcd.clear();
   lcd.print("  Place Finger");
@@ -296,127 +308,71 @@ uint8_t getFingerprintEnroll(uint8_t id)
     key = Check_IR_sensor();
     if(key == EXIT) return 0;
     
-    if(digitalRead(fingersens) == 0)
-    {
-      p = finger.getImage();
-      switch (p) 
-      {
-        case FINGERPRINT_OK:
-          //Serial.println("Image taken");
-          break;
-        case FINGERPRINT_NOFINGER:
-          //Serial.println(".");
-          break;
-        case FINGERPRINT_PACKETRECIEVEERR:
-          //Serial.println("Communication error");
-          break;
-        case FINGERPRINT_IMAGEFAIL:
-          //Serial.println("Imaging error");
-          break;
-        default:
-          //Serial.println("Unknown error");
-          break;
-      }
-    }
+    p = finger.getImage();
+    if(p == FINGERPRINT_OK) break;
   }
 
   // OK success!
 
   p = finger.image2Tz(1);
-  switch (p) 
+  if(p != FINGERPRINT_OK) 
   {
-    case FINGERPRINT_OK:
-      //Serial.println("Image converted");
-      break;
-    case FINGERPRINT_IMAGEMESS:
-      //Serial.println("Image too messy");
-      return p;
-    case FINGERPRINT_PACKETRECIEVEERR:
-      //Serial.println("Communication error");
-      return p;
-    case FINGERPRINT_FEATUREFAIL:
-      //Serial.println("Could not find fingerprint features");
-      return p;
-    case FINGERPRINT_INVALIDIMAGE:
-      //Serial.println("Could not find fingerprint features");
-      return p;
-    default:
-      //Serial.println("Unknown error");
-      return p;
+    lcd.clear();
+    lcd.setCursor(6, 1);
+    lcd.print("ERROR!");
+    delay(2000);
+    return p;
   }
+
 
   //Serial.println("Remove finger");
   lcd.clear();
   lcd.print(" Remove Finger");
   delay(2000);
   p = 0;
-  while (p != FINGERPRINT_NOFINGER) {
+  while (p != FINGERPRINT_NOFINGER) 
+  {
     p = finger.getImage();
+    key = Check_IR_sensor();
+    if(key == EXIT) return 0;
   }
   //Serial.print("ID "); Serial.println(id);
   p = -1;
   lcd.clear();
   lcd.print("PlaceFingerAgain");
+
   //Serial.println("Place same finger again");
-  while (p != FINGERPRINT_OK) {
+  while (p != FINGERPRINT_OK) 
+  {
     p = finger.getImage();
-    switch (p) {
-    case FINGERPRINT_OK:
-      //Serial.println("Image taken");
-      break;
-    case FINGERPRINT_NOFINGER:
-      //Serial.print(".");
-      break;
-    case FINGERPRINT_PACKETRECIEVEERR:
-      //Serial.println("Communication error");
-      break;
-    case FINGERPRINT_IMAGEFAIL:
-      //Serial.println("Imaging error");
-      break;
-    default:
-      //Serial.println("Unknown error");
-      break;
-    }
+    key = Check_IR_sensor();
+    if(key == EXIT) return 0;
+
+    if(p == FINGERPRINT_OK) break;
   }
 
   // OK success!
 
   p = finger.image2Tz(2);
-  switch (p) {
-    case FINGERPRINT_OK:
-      //Serial.println("Image converted");
-      break;
-    case FINGERPRINT_IMAGEMESS:
-      //Serial.println("Image too messy");
-      return p;
-    case FINGERPRINT_PACKETRECIEVEERR:
-      //Serial.println("Communication error");
-      return p;
-    case FINGERPRINT_FEATUREFAIL:
-      //Serial.println("Could not find fingerprint features");
-      return p;
-    case FINGERPRINT_INVALIDIMAGE:
-      //Serial.println("Could not find fingerprint features");
-      return p;
-    default:
-      //Serial.println("Unknown error");
-      return p;
+  if(p != FINGERPRINT_OK)
+  {
+    lcd.clear();
+    lcd.setCursor(6, 1);
+    lcd.print("ERROR!");
+    delay(2000);
+    return p;
   }
 
   // OK converted!
   //Serial.print("Creating model for #");  Serial.println(id);
 
   p = finger.createModel();
-  if (p == FINGERPRINT_OK) {
-    //Serial.println("Prints matched!");
-  } else if (p == FINGERPRINT_PACKETRECIEVEERR) {
-    //Serial.println("Communication error");
-    return p;
-  } else if (p == FINGERPRINT_ENROLLMISMATCH) {
-    //Serial.println("Fingerprints did not match");
-    return p;
-  } else {
-    //Serial.println("Unknown error");
+  if(p != FINGERPRINT_OK)
+  {
+    lcd.clear();
+    lcd.setCursor(6, 1);
+    lcd.print("ERROR!");
+    delay(2000);
     return p;
   }
 
@@ -428,17 +384,13 @@ uint8_t getFingerprintEnroll(uint8_t id)
     lcd.print("Stored!");
     delay(1000);
     //Serial.println("Stored!");
-  } else if (p == FINGERPRINT_PACKETRECIEVEERR) {
-    //Serial.println("Communication error");
-    return p;
-  } else if (p == FINGERPRINT_BADLOCATION) {
-    //Serial.println("Could not store in that location");
-    return p;
-  } else if (p == FINGERPRINT_FLASHERR) {
-    //Serial.println("Error writing to flash");
-    return p;
-  } else {
-    //Serial.println("Unknown error");
+  } 
+  else 
+  {
+    lcd.clear();
+    lcd.setCursor(6, 1);
+    lcd.print("ERROR!");
+    delay(2000);    
     return p;
   }
 
@@ -459,25 +411,12 @@ uint8_t deleteFingerprint(uint8_t id)
     delay(1000);
     //Serial.println("Deleted!");
   } 
-  else if (p == FINGERPRINT_PACKETRECIEVEERR) 
-  {
-    //Serial.println("Communication error");
-    return p;
-  } 
-  else if (p == FINGERPRINT_BADLOCATION) 
-  {
-    //Serial.println("Could not delete in that location");
-    return p;
-  } 
-  else if (p == FINGERPRINT_FLASHERR)
-  {
-    //Serial.println("Error writing to flash");
-    return p;
-  } 
   else 
   {
-    //Serial.print("Unknown error: 0x"); Serial.println(p, HEX);
-    return p;
+    lcd.clear();
+    lcd.setCursor(6, 1);
+    lcd.print("ERROR!");
+    delay(2000);
   }
 }
 
