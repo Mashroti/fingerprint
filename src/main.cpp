@@ -318,7 +318,7 @@ uint8_t getFingerprintEnroll(uint8_t id)
   if(p != FINGERPRINT_OK) 
   {
     lcd.clear();
-    lcd.setCursor(6, 1);
+    lcd.setCursor(6, 0);
     lcd.print("ERROR!");
     delay(2000);
     return p;
@@ -357,7 +357,7 @@ uint8_t getFingerprintEnroll(uint8_t id)
   if(p != FINGERPRINT_OK)
   {
     lcd.clear();
-    lcd.setCursor(6, 1);
+    lcd.setCursor(6, 0);
     lcd.print("ERROR!");
     delay(2000);
     return p;
@@ -370,7 +370,7 @@ uint8_t getFingerprintEnroll(uint8_t id)
   if(p != FINGERPRINT_OK)
   {
     lcd.clear();
-    lcd.setCursor(6, 1);
+    lcd.setCursor(6, 0);
     lcd.print("ERROR!");
     delay(2000);
     return p;
@@ -388,7 +388,7 @@ uint8_t getFingerprintEnroll(uint8_t id)
   else 
   {
     lcd.clear();
-    lcd.setCursor(6, 1);
+    lcd.setCursor(6, 0);
     lcd.print("ERROR!");
     delay(2000);    
     return p;
@@ -406,7 +406,7 @@ uint8_t deleteFingerprint(uint8_t id)
   if (p == FINGERPRINT_OK) 
   {
     lcd.clear();
-    lcd.setCursor(4, 1);
+    lcd.setCursor(4, 0);
     lcd.print("Deleted!");
     delay(1000);
     //Serial.println("Deleted!");
@@ -414,7 +414,7 @@ uint8_t deleteFingerprint(uint8_t id)
   else 
   {
     lcd.clear();
-    lcd.setCursor(6, 1);
+    lcd.setCursor(6, 0);
     lcd.print("ERROR!");
     delay(2000);
   }
