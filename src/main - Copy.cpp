@@ -33,15 +33,17 @@ int RECV_PIN = 3; // the pin where you connect the output pin of IR sensor
 IRrecv irrecv(RECV_PIN);
 decode_results results;
 
+uint8_t select = 0;
+
 uint8_t   getFingerprintEnroll(uint8_t id);
 uint8_t   deleteFingerprint   (uint8_t id);
-int16_t   getFingerprintID    (void); 
+uint16_t  getFingerprintID    (void); 
 int       Check_IR_sensor     (void);
 void      menu                (void);
 void      ENROLL              (void);
 void      DELETE              (void);
 void      ADMIN               (void);
-void      NewAdmin            (void);
+
 void setup()
 {
   //Serial.begin(9600);
@@ -92,7 +94,7 @@ void loop()
 
     if(digitalRead(fingersens) == 0 || key == opendoor)
     {
-      int16_t result = getFingerprintID();
+      uint16_t result = getFingerprintID();
       if(result >= 0 || key == opendoor)
       {
         lcd.clear();
@@ -123,7 +125,7 @@ void loop()
 
     if(key == OK) 
     {
-      ADMIN();
+      menu();
       x = true;
     }
   }
@@ -160,7 +162,8 @@ void menu(void)
     switch (key)
     {
       case NUM1:
-        ENROLL();
+        select = 1;
+        ADMIN();
         x = true;
         break;
       case NUM2:
@@ -168,7 +171,7 @@ void menu(void)
         x = true;
         break;
       case NUM3:
-        NewAdmin();
+        ADMIN();
         x = true;
         break;
     } 
@@ -246,11 +249,20 @@ void DELETE (void)
   }
 }
 
-void NewAdmin(void)
+void admin_new(void)
 {
+  lcd.clear();
+  lcd.print(" Remove Finger");
+
+  int p = 0;
+  while (p != FINGERPRINT_NOFINGER) {
+    p = finger.getImage();
+  }
+
+  lcd.clear();
+  lcd.print("Place New Finger");
   getFingerprintEnroll(0);
 }
-
 void ADMIN (void)
 {
   int key = -1;
@@ -269,18 +281,18 @@ void ADMIN (void)
 
     if(digitalRead(fingersens) == 0)
     {
-      delay(1000);
       int result = getFingerprintID();
       switch (result)
       {
         case 0:
-          menu();
+          if(select == 1) 
+          {
+            ENROLL();
+            return;
+          }
+          else  admin_new();
           key = EXIT;
           break;
-        case 51 ... 60:
-          menu();
-          key = EXIT;
-          break;         
         default:
           lcd.clear();
           lcd.print(" your not Admin");
@@ -416,9 +428,9 @@ uint8_t deleteFingerprint(uint8_t id)
   }
 }
 
-int16_t getFingerprintID(void) 
+uint16_t getFingerprintID(void) 
 {
-  int16_t ret = -1;
+  uint16_t ret = -1;
   uint8_t p = finger.getImage();
 
   if (p == FINGERPRINT_OK)
